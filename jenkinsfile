@@ -13,7 +13,7 @@ node {
 				getChangedFiles()
 			}
 			stage('2. getChangeString') { 
-				echo "- getChangeString - " + getChangeString
+				echo "- getChangeString - " + getChangeString()
 			}
 		//}
 	}
