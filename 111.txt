@@ -1,0 +1,46 @@
+    1  ping 8.8.8.8
+    2  apt update
+    3  apt upgrade
+   16  apt install sudo
+   12  usermod -a -G sudo lvolod
+    4  apt install mc
+   16  apt install curl
+    5  mc
+   
+    8  reload
+   10  ip addr
+   
+   
+
+   17  curl -sL -o /etc/apt/trusted.gpg.d/morph027-gitea.asc https://packaging.gitlab.io/gitea/gpg.key
+   18  echo "deb [arch=amd64] https://packaging.gitlab.io/gitea gitea main" | sudo tee /etc/apt/sources.list.d/morph027-gitea.list
+   19  apt-get update
+   20  apt-get install gitea
+   21  systemctl start gitea
+   22  systemctl enable gitea
+   23  git --version
+   24  systemctl disable gitea
+   25  systemctl stop gitea
+   26  apt remove gitea
+   27  locale -a
+   28  dpkg-reconfigure locales
+   29  locale -a
+   30  locale
+   31  apt install git
+   32  sudo adduser    --system    --shell /bin/bash    --gecos 'Git Version Control'    --group    --disabled-password    --home /home/git    git
+   33  history
+
+
+
+# The primary network interface
+allow-hotplug ens6
+iface ens6 inet static
+    address 192.168.35.21/25
+    gateway 192.168.35.1
+    # dns-* options implemented by the resolvconf package, if installed
+    dns-nameservers 192.168.35.1 192.168.35.4
+    dns-search foranx.by
+
+
+
+wget --http-user='frnx002' --http-password='tn!frnx' -r -np -nH -w 2 -A '*.zip,*.docx,*.md5' https://distsac1.temenos.com/pub/frnx002/
