@@ -3,26 +3,42 @@
 properties([disableConcurrentBuilds()])
 
 pipeline {
-    agent { 
-        label 'master'
-        }
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
-        timestamps()
-    }
-    
-    stages {
-        stage("First step") {
-            steps {
-                echo "sh 1"
-            }
-        }
-        
-        stage("Second step") {
-            steps {
-                echo "sh 2"
-            }
-        }
-        
-    }
+	agent { 
+		label 'master'
+		}
+	options {
+		buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+		timestamps()
+	}
+   
+	stages {
+		stage("1. Get new and changed files list compared to last build") {
+			steps {
+				echo "Step 1 with script started"
+				script {
+					echo "script......"
+					def changeLogSets = currentBuild.changeSets
+					for (int i = 0; i < changeLogSets.size(); i++) {
+						def entries = changeLogSets[i].items
+						for (int j = 0; j < entries.length; j++) {
+							def entry = entries[j]
+							echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
+							def files = new ArrayList(entry.affectedFiles)
+							for (int k = 0; k < files.size(); k++) {
+								def file = files[k]
+								echo "  ${file.editType.name} ${file.path}"
+							}
+						}
+					}
+					echo ".......script"
+				}
+				echo "Step 1 with script ended"
+			}
+		}
+		stage("Second step") {
+			steps {
+				echo "sh 2"
+			}
+		}
+	}
 }
