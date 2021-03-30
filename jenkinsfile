@@ -1,61 +1,25 @@
-node {
-	timestamps {
-		//def remote = [:]
-		//remote.name = 't24-app-dev'
-		//remote.host = '192.168.140.228'
-		//remote.allowAnyHosts = true
-		//remote.fileTransfer = 'scp'
-		//withCredentials([usernamePassword(credentialsId: 'PrivatBank.t24.user', usernameVariable: 'userName', passwordVariable: 'userPassword')]){
-			//remote.user = userName
-			//remote.password = userPassword
-			stage('1. List Jenkins changed file since last Build') { 
-				echo "- currentBuild.number - " + currentBuild.number
-				getChangedFiles()
-			}
-			stage('2. getChangeString') { 
-				echo "- getChangeString - " + getChangeString()
-			}
-		//}
-	}
-}
+#!groovy
+// Check ub1 properties
+properties([disableConcurrentBuilds()])
 
-@NonCPS
-def getChangedFiles() {
-	def changeLogSets = currentBuild.changeSets
-	for (int i = 0; i < changeLogSets.size(); i++) {
-		def entries = changeLogSets[i].items
-		for (int j = 0; j < entries.length; j++) {
-			def entry = entries[j]
-			echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
-			def files = new ArrayList(entry.affectedFiles)
-			for (int k = 0; k < files.size(); k++) {
-				def file = files[k]
-				echo "  ${file.editType.name} ${file.path}"
-			}
-		}
-	}
-}
-
-
-//addddddd
-@NonCPS
-def getChangeString() {
-    MAX_MSG_LEN = 100
-    def changeString = ""
-
-    echo "Gathering SCM changes"
-    def changeLogSets = currentBuild.changeSets
-    for (int i = 0; i < changeLogSets.size(); i++) {
-        def entries = changeLogSets[i].items
-        for (int j = 0; j < entries.length; j++) {
-            def entry = entries[j]
-            truncated_msg = entry.msg.take(MAX_MSG_LEN)
-            changeString += " - ${truncated_msg} [${entry.author}]\n"
+pipeline {
+    agent { 
+        label 'master'
+        }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+        timestamps()
+    }
+    stages {
+        stage("First step") {
+            steps {
+                echo "sh 1"
+            }
+        }
+        stage("Second step") {
+            steps {
+                echo "sh 2"
+            }
         }
     }
-
-    if (!changeString) {
-        changeString = " - No new changes"
-    }
-    return changeString
 }
