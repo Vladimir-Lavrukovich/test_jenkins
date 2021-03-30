@@ -1,0 +1,108 @@
+Jenkins Token in Gitea
+e7d08c201a48d3167cf049294540433a1d1845be
+
+node {
+	timestamps {
+		def remote = [:]
+		remote.name = 't24-app-dev'
+		remote.host = '192.168.140.228'
+		remote.allowAnyHosts = true
+		remote.fileTransfer = 'scp'
+		withCredentials([usernamePassword(credentialsId: 'PrivatBank.t24.user', usernameVariable: 'userName', passwordVariable: 'userPassword')]){
+			remote.user = userName
+			remote.password = userPassword
+			stage('1. sshPut to PrivatBank Dev server') { 
+				echo "========= SCP files to PrivatBank Dev Server =========="
+				def commandResult = sshPut remote: remote, from: 'privat-models/src/PVB.BP/PVB.B.AA.REPAYMENT.ALL.b', into: '/t24/envs/bnkprod/bnk/PVB.BP/'
+				echo "Result: " + commandResult
+			}
+			stage('2. Compile module') { 
+				echo "=========  Compile module on server ========="
+				def commandResult = sshCommand remote: remote, command: "source ~/.bash_profile; ./CMPL PVB.BP PVB.B.AA.REPAYMENT.ALL.b"
+				//def commandResult = sshCommand remote: remote, command: "ls -lh"
+				echo "Result: " + commandResult
+			}
+		}
+	}
+}
+
+
+
+
+
+
+def changeLogSets = currentBuild.changeSets
+for (int i = 0; i < changeLogSets.size(); i++) {
+	def entries = changeLogSets[i].items
+	for (int j = 0; j < entries.length; j++) {
+		def entry = entries[j]
+		def files = new ArrayList(entry.affectedFiles)
+		for (int k = 0; k < files.size(); k++) {
+			def file = files[k]
+			println file.path
+			echo "  ${file.editType.name} ${file.path}"
+		}
+	}
+}
+
+
+
+node {
+	timestamps {
+		//def remote = [:]
+		//remote.name = 't24-app-dev'
+		//remote.host = '192.168.140.228'
+		//remote.allowAnyHosts = true
+		//remote.fileTransfer = 'scp'
+		//withCredentials([usernamePassword(credentialsId: 'PrivatBank.t24.user', usernameVariable: 'userName', passwordVariable: 'userPassword')]){
+			//remote.user = userName
+			//remote.password = userPassword
+			stage('1. List Jenkins changed file since last Build') { 
+				echo "- currentBuild.number - " + currentBuild.number
+				getChangedFiles()
+			}
+			stage('2. getChangeString') { 
+				echo "- getChangeString - " + getChangeString
+			}
+		//}
+	}
+}
+
+@NonCPS
+def getChangedFiles() {
+	def changeLogSets = currentBuild.changeSets
+	for (int i = 0; i < changeLogSets.size(); i++) {
+		def entries = changeLogSets[i].items
+		for (int j = 0; j < entries.length; j++) {
+			def entry = entries[j]
+			echo "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}"
+			def files = new ArrayList(entry.affectedFiles)
+			for (int k = 0; k < files.size(); k++) {
+				def file = files[k]
+				echo "  ${file.editType.name} ${file.path}"
+			}
+		}
+	}
+}
+
+@NonCPS
+def getChangeString() {
+    MAX_MSG_LEN = 100
+    def changeString = ""
+
+    echo "Gathering SCM changes"
+    def changeLogSets = currentBuild.rawBuild.changeSets
+    for (int i = 0; i < changeLogSets.size(); i++) {
+        def entries = changeLogSets[i].items
+        for (int j = 0; j < entries.length; j++) {
+            def entry = entries[j]
+            truncated_msg = entry.msg.take(MAX_MSG_LEN)
+            changeString += " - ${truncated_msg} [${entry.author}]\n"
+        }
+    }
+
+    if (!changeString) {
+        changeString = " - No new changes"
+    }
+    return changeString
+}
